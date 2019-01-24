@@ -1435,8 +1435,8 @@ mlx5_pci_probe(struct rte_pci_driver *pci_drv __rte_unused,
 	/* Default configuration. */
 	dev_config = (struct mlx5_dev_config){
 		.mps = MLX5_ARG_UNSET,
-		.tx_vec_en = 1,
-		.rx_vec_en = 1,
+		.tx_vec_en = 0, /* Change to 1 to enable TX vPMD. */
+		.rx_vec_en = 0, /* Change to 1 to enable RX vPMD. */
 		.txq_inline = MLX5_ARG_UNSET,
 		.txqs_inline = MLX5_ARG_UNSET,
 		.txqs_vec = MLX5_ARG_UNSET,
