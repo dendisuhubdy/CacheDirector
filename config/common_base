@@ -317,7 +317,7 @@ CONFIG_RTE_LIBRTE_MLX4_DLOPEN_DEPS=n
 # Compile burst-oriented Mellanox ConnectX-4, ConnectX-5 & Bluefield
 # (MLX5) PMD
 #
-CONFIG_RTE_LIBRTE_MLX5_PMD=n
+CONFIG_RTE_LIBRTE_MLX5_PMD=y
 CONFIG_RTE_LIBRTE_MLX5_DEBUG=n
 CONFIG_RTE_LIBRTE_MLX5_DLOPEN_DEPS=n
 
@@ -732,7 +732,13 @@ CONFIG_RTE_LIBRTE_MBUF=y
 CONFIG_RTE_LIBRTE_MBUF_DEBUG=n
 CONFIG_RTE_MBUF_DEFAULT_MEMPOOL_OPS="ring_mp_mc"
 CONFIG_RTE_MBUF_REFCNT_ATOMIC=y
-CONFIG_RTE_PKTMBUF_HEADROOM=128
+# 
+# Default RTE_PKTMBUF_HEADROOM is 128
+# For using CacheDirector, it should be changed to: 
+# Haswell: 832
+# Skylake: 3264
+#
+CONFIG_RTE_PKTMBUF_HEADROOM=832
 
 #
 # Compile librte_timer
@@ -957,3 +963,13 @@ CONFIG_RTE_APP_CRYPTO_PERF=y
 # Compile the eventdev application
 #
 CONFIG_RTE_APP_EVENTDEV=y
+
+#
+# Compile rte_slice Library
+#
+CONFIG_RTE_LIBRTE_SLICE=y
+
+#
+# Compile rte_msr Library
+#
+CONFIG_RTE_LIBRTE_MSR=y

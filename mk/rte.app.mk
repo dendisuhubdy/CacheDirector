@@ -69,6 +69,8 @@ endif
 
 _LDLIBS-y += --whole-archive
 
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MSR)            += -lrte_msr
+_LDLIBS-$(CONFIG_RTE_LIBRTE_SLICE)          += -lrte_slice
 _LDLIBS-$(CONFIG_RTE_LIBRTE_CFGFILE)        += -lrte_cfgfile
 _LDLIBS-$(CONFIG_RTE_LIBRTE_GRO)            += -lrte_gro
 _LDLIBS-$(CONFIG_RTE_LIBRTE_GSO)            += -lrte_gso

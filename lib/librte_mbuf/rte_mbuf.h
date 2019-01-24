@@ -41,6 +41,7 @@
 #include <rte_prefetch.h>
 #include <rte_branch_prediction.h>
 #include <rte_mbuf_ptype.h>
+#include <rte_slice.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -615,6 +616,16 @@ struct rte_mbuf {
 	union {
 		void *userdata;   /**< Can be used for external metadata */
 		uint64_t udata64; /**< Allow 8-byte userdata on 32-bit */
+		struct {
+			uint8_t slice0; /**< Save data_off for slice0 */
+			uint8_t slice1; /**< Save data_off for slice1 */
+			uint8_t slice2; /**< Save data_off for slice2 */
+			uint8_t slice3; /**< Save data_off for slice3 */
+			uint8_t slice4; /**< Save data_off for slice4 */
+			uint8_t slice5; /**< Save data_off for slice5 */
+			uint8_t slice6; /**< Save data_off for slice6 */
+			uint8_t slice7; /**< Save data_off for slice7 */
+		}slice_off;
 	};
 
 	struct rte_mempool *pool; /**< Pool from which mbuf was allocated. */
@@ -2288,6 +2299,48 @@ rte_pktmbuf_linearize(struct rte_mbuf *mbuf)
  *   the packet.
  */
 void rte_pktmbuf_dump(FILE *f, const struct rte_mbuf *m, unsigned dump_len);
+
+/* Set data_off for different slices in mbuf structure
+ * In order to be fitted in 8 bits, need to divide the offset by 64
+ */
+void
+rte_pktmbuf_slice_init(struct rte_mbuf *m);
+
+/* Get data_off for different slices from udata64 in mbuf structure */
+inline void
+rte_pktmbuf_set_slice(struct rte_mbuf *m, int slice_number)
+{
+        switch(slice_number)
+        {
+                case 0:
+                        m->data_off = m->slice_off.slice0 * 64;
+                        break;
+                case 1:
+                        m->data_off = m->slice_off.slice1 * 64;
+                        break;
+                case 2:
+                        m->data_off = m->slice_off.slice2 * 64;
+                        break;
+                case 3:
+                        m->data_off = m->slice_off.slice3 * 64;
+                        break;
+                case 4:
+                        m->data_off = m->slice_off.slice4 * 64;
+                        break;
+                case 5:
+                        m->data_off = m->slice_off.slice5 * 64;
+                        break;
+                case 6:
+                        m->data_off = m->slice_off.slice6 * 64;
+                        break;
+                case 7:
+                        m->data_off = m->slice_off.slice7 * 64;
+                        break;
+                default:
+                        m->data_off = RTE_PKTMBUF_HEADROOM;
+        }
+}
+
 
 #ifdef __cplusplus
 }

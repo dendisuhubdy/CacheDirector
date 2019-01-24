@@ -97,6 +97,8 @@ rte_pktmbuf_init(struct rte_mempool *mp,
 
 	/* keep some headroom between start of buffer and data */
 	m->data_off = RTE_MIN(RTE_PKTMBUF_HEADROOM, (uint16_t)m->buf_len);
+	/* Set offsets for different slices in udata64 */
+    rte_pktmbuf_slice_init(m);
 
 	/* init some constant fields */
 	m->pool = mp;
@@ -478,3 +480,137 @@ rte_get_tx_ol_flag_list(uint64_t mask, char *buf, size_t buflen)
 
 	return 0;
 }
+
+/* Set data_off for different slices in mbuf structure
+ * In order to be fitted in 8 bits, need to divide the offset by 64
+ */
+void
+rte_pktmbuf_slice_init(struct rte_mbuf *m)
+{
+    #ifdef UNCORE
+	 #ifdef HASWELL
+		//printf("slice_init_uncore\n");
+		uint8_t slices_found=0; /* 8-bit for saving the state of different slices */
+		uint8_t current_slice=0;
+		uint64_t offset=0;
+		uint16_t found_offsets[8]={0};
+		int i=0;
+		
+		while(slices_found!=255)
+		{
+			current_slice=calculateSlice_uncore((void*)((uint64_t)m->buf_addr + offset));
+			if((slices_found&(1<<current_slice))==0)
+			{
+				/* To avoid shrinking data segment
+				 * in case of noisy polling
+				 */
+				if(offset>RTE_PKTMBUF_HEADROOM)
+				{
+					offset=RTE_PKTMBUF_HEADROOM;
+					printf("Noisy polling\n");
+				}
+				found_offsets[current_slice]=offset;
+				slices_found|=(1<<current_slice);
+			}
+			offset+=LINE;
+		}
+		/* Verify */
+		for(i=0;i<8;i++) {
+			current_slice=calculateSlice_HF_haswell(m->buf_iova+found_offsets[i]);
+			if(i!=current_slice)
+				printf("Error! Offset: %u Current_slice: %d Expected_slice: %d\n",found_offsets[i], current_slice, i);
+		}
+		m->slice_off.slice0 = found_offsets[0]/64;
+		m->slice_off.slice1 = found_offsets[1]/64;
+		m->slice_off.slice2 = found_offsets[2]/64;
+		m->slice_off.slice3 = found_offsets[3]/64;
+		m->slice_off.slice4 = found_offsets[4]/64;
+		m->slice_off.slice5 = found_offsets[5]/64;
+		m->slice_off.slice6 = found_offsets[6]/64;
+		m->slice_off.slice7 = found_offsets[7]/64;
+	 #else 
+	  #ifdef SKYLAKE
+		uint8_t slices_found=0; /* 8-bit for saving the state of different slices */
+		uint8_t current_slice=0, slice=0;
+		uint64_t offset=0;
+		uint16_t found_offsets[8]={0};
+		
+		while(slices_found!=255)
+		{
+			slice=calculateSlice_uncore((void*)((uint64_t)m->buf_addr + offset));
+
+			/*
+			 * Set current_slice based on the mapping found previously
+			 * current_slice represent the core which is associated with the slice
+			 * The mapping is as follows:
+			 * C0 -> S0/S2/S6
+			 * C1 -> S4/S1
+			 * C2 -> S8/S11
+			 * C3 -> S12/S13
+			 * C4 -> S10/S7/S9
+			 * C5 -> S14/S16
+			 * C6 -> S3/S5
+			 * C7 -> S15/S17
+			 */
+			if (slice==0 || slice ==2 || slice==6){
+				current_slice=0;
+			} else if (slice==4 || slice==1){
+				current_slice=1;
+			} else if (slice==8 || slice==11){
+				current_slice=2;
+			} else if (slice==12 || slice==13){
+				current_slice=3;
+			} else if (slice==10 || slice==7 || slice==9){
+				current_slice=4;
+			} else if (slice==14 || slice==16){
+				current_slice=5;
+			} else if (slice==3 || slice==5){
+				current_slice=6;
+			} else if (slice==15 || slice==17){
+				current_slice=7;
+			} else{
+				printf("Warning! Wrong slice detected!\n");
+			}
+
+			if((slices_found&(1<<current_slice))==0)
+			{
+				/* To avoid shrinking data segment
+				 * in case of noisy polling
+				 */
+				if(offset>RTE_PKTMBUF_HEADROOM)
+				{
+					printf("Noisy Polling: %lu\n",offset);
+					offset=RTE_PKTMBUF_HEADROOM;
+				}
+				found_offsets[current_slice]=offset;
+				slices_found|=(1<<current_slice);
+			}
+			offset+=LINE;
+		}
+
+		m->slice_off.slice0 = found_offsets[0]/64;
+		m->slice_off.slice1 = found_offsets[1]/64;
+		m->slice_off.slice2 = found_offsets[2]/64;
+		m->slice_off.slice3 = found_offsets[3]/64;
+		m->slice_off.slice4 = found_offsets[4]/64;
+		m->slice_off.slice5 = found_offsets[5]/64;
+		m->slice_off.slice6 = found_offsets[6]/64;
+		m->slice_off.slice7 = found_offsets[7]/64;
+	  #endif
+	 #endif
+    #else
+     #ifdef HASWELL
+        m->slice_off.slice0 = sliceFinder_HF_haswell(m->buf_iova,0)/64;
+        m->slice_off.slice1 = sliceFinder_HF_haswell(m->buf_iova,1)/64;
+        m->slice_off.slice2 = sliceFinder_HF_haswell(m->buf_iova,2)/64;
+        m->slice_off.slice3 = sliceFinder_HF_haswell(m->buf_iova,3)/64;
+        m->slice_off.slice4 = sliceFinder_HF_haswell(m->buf_iova,4)/64;
+        m->slice_off.slice5 = sliceFinder_HF_haswell(m->buf_iova,5)/64;
+        m->slice_off.slice6 = sliceFinder_HF_haswell(m->buf_iova,6)/64;
+        m->slice_off.slice7 = sliceFinder_HF_haswell(m->buf_iova,7)/64;
+     #else
+        return EXIT_FAILURE;
+     #endif
+    #endif
+}
+

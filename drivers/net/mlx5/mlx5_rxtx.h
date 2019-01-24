@@ -121,6 +121,7 @@ struct mlx5_rxq_data {
 	void *cq_uar; /* CQ user access region. */
 	uint32_t cqn; /* CQ number. */
 	uint8_t cq_arm_sn; /* CQ arm seq number. */
+	uint16_t queue_id; /* Queue ID - Used for slice selection, instead of calling rte_lcore_id() */
 #ifndef RTE_ARCH_64
 	rte_spinlock_t *uar_lock_cq;
 	/* CQ (UAR) access lock required for 32bit implementations */

@@ -7,7 +7,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 LIB = librte_mbuf.a
 
 CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3
-LDLIBS += -lrte_eal -lrte_mempool
+LDLIBS += -lrte_eal -lrte_mempool -lrte_msr -lrte_slice
 
 EXPORT_MAP := rte_mbuf_version.map
 

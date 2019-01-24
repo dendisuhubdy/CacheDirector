@@ -25,6 +25,7 @@
 #include <rte_common.h>
 #include <rte_branch_prediction.h>
 #include <rte_ether.h>
+#include <rte_slice.h>
 
 #include "mlx5.h"
 #include "mlx5_utils.h"
@@ -2000,6 +2001,11 @@ mlx5_rx_burst(void *dpdk_rxq, struct rte_mbuf **pkts, uint16_t pkts_n)
 	unsigned int i = 0;
 	unsigned int rq_ci = rxq->rq_ci << sges_n;
 	int len = 0; /* keep its value across iterations. */
+	uint16_t queue_id = rxq->queue_id;
+	
+	int slice_number = queue_id%coreNumber; /* This can be used when queue mapping for socket 0 is sequential, i.e., 0,1,2,3,4,5,6,7 */
+	//int slice_number = ((int)(queue_id/socketNumber))%coreNumber; /* This can be used when queue mapping for socket 0 is not sequential, i.e., 0,2,4,6,8,10,12,14 */
+
 
 	while (pkts_n) {
 		unsigned int idx = rq_ci & wqe_cnt;
@@ -2070,6 +2076,13 @@ mlx5_rx_burst(void *dpdk_rxq, struct rte_mbuf **pkts, uint16_t pkts_n)
 		 * of the buffers are already known, only the buffer address
 		 * changes.
 		 */
+		
+		/*
+         * Force HEADROOM to set to the right value before giving it to the NIC
+         * the headroom will be set based on the queue_id
+         * e.g., queue_id=0 or 1 -> core=0 on different sockets -> slice=0
+         */
+        rte_pktmbuf_set_slice(rep, slice_number);
 		wqe->addr = rte_cpu_to_be_64(rte_pktmbuf_mtod(rep, uintptr_t));
 		/* If there's only one MR, no need to replace LKey in WQE. */
 		if (unlikely(mlx5_mr_btree_len(&rxq->mr_ctrl.cache_bh) > 1))

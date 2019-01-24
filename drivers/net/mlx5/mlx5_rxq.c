@@ -29,6 +29,7 @@
 #include <rte_interrupts.h>
 #include <rte_debug.h>
 #include <rte_io.h>
+#include <rte_slice.h>
 
 #include "mlx5.h"
 #include "mlx5_rxtx.h"
@@ -189,6 +190,10 @@ rxq_alloc_elts_sprq(struct mlx5_rxq_ctrl *rxq_ctrl)
 	unsigned int elts_n = 1 << rxq_ctrl->rxq.elts_n;
 	unsigned int i;
 	int err;
+	uint16_t queue_id = rxq_ctrl->rxq.queue_id;
+
+	int slice_number = queue_id%coreNumber; /* This can be used when queue mapping for socket 0 is sequential, i.e., 0,1,2,3,4,5,6,7 */
+	//int slice_number = ((int)(queue_id/socketNumber))%coreNumber; /* This can be used when queue mapping for socket 0 is not sequential, i.e., 0,2,4,6,8,10,12,14 */
 
 	/* Iterate on segments. */
 	for (i = 0; (i != elts_n); ++i) {
@@ -202,7 +207,7 @@ rxq_alloc_elts_sprq(struct mlx5_rxq_ctrl *rxq_ctrl)
 			goto error;
 		}
 		/* Headroom is reserved by rte_pktmbuf_alloc(). */
-		assert(DATA_OFF(buf) == RTE_PKTMBUF_HEADROOM);
+		// assert(DATA_OFF(buf) == RTE_PKTMBUF_HEADROOM); /* Ignore default headroom*/
 		/* Buffer is supposed to be empty. */
 		assert(rte_pktmbuf_data_len(buf) == 0);
 		assert(rte_pktmbuf_pkt_len(buf) == 0);
@@ -210,6 +215,16 @@ rxq_alloc_elts_sprq(struct mlx5_rxq_ctrl *rxq_ctrl)
 		/* Only the first segment keeps headroom. */
 		if (i % sges_n)
 			SET_DATA_OFF(buf, 0);
+                /* Set data_off based on queue_id */
+                #ifdef UNCORE /* The definition is in rte_slice.h */
+                        SET_DATA_OFF(buf, sliceFinder_uncore(buf->buf_addr,slice_number)); /* Make sure to define the right CPU architecture in rte_msr.h */ 
+                #else
+                 #ifndef SKYLAKE
+                        SET_DATA_OFF(buf, sliceFinder_HF_haswell(buf->buf_iova,slice_number)); /* Use Haswell's hash function. */
+                 #else
+                        return EXIT_FAILURE; /* Hash function of Skylake is not known. */
+                 #endif
+                #endif
 		PORT(buf) = rxq_ctrl->rxq.port_id;
 		DATA_LEN(buf) = rte_pktmbuf_tailroom(buf);
 		PKT_LEN(buf) = DATA_LEN(buf);
@@ -1460,6 +1475,8 @@ mlx5_rxq_new(struct rte_eth_dev *dev, uint16_t idx, uint16_t desc,
 		dev->data->port_id,
 		tmpl->rxq.crc_present ? "disabled" : "enabled",
 		tmpl->rxq.crc_present << 2);
+    /* Set queue_id */
+    tmpl->rxq.queue_id=idx;
 	/* Save port ID. */
 	tmpl->rxq.rss_hash = !!priv->rss_conf.rss_hf &&
 		(!!(dev->data->dev_conf.rxmode.mq_mode & ETH_MQ_RX_RSS));
