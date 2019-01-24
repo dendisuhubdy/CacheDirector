@@ -19,11 +19,11 @@ The current version of CacheDirector is tested on systems with Intel(R) Xeon(R) 
 
 ## Using CacheDirector with FastClick
 
-You can try CacheDirector with any DPDK-based application. However, if you want to use [FastClick][fastclick] or Metron[metron].You have to modify `$fastclick-path/userlevel/dpdk.mk` to support new libraries added for CacheDirector, as below:
+You can try CacheDirector with any DPDK-based application. However, if you want to use [FastClick][fastclick] or [Metron][metron]. You have to modify `$fastclick-path/userlevel/dpdk.mk` to support new libraries added for CacheDirector, as below:
 
 ```
 ifneq ($(CONFIG_RTE_BUILD_COMBINE_LIBS),y)
-_LDLIBS-$(CONFIG_RTE_LIBRTE_MSR)            += -lrte_msr 	# Added
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MSR)            += -lrte_msr 	  # Added
 _LDLIBS-$(CONFIG_RTE_LIBRTE_SLICE)          += -lrte_slice  # Added
 _LDLIBS-$(CONFIG_RTE_LIBRTE_KVARGS)         += -lrte_kvargs
 _LDLIBS-$(CONFIG_RTE_LIBRTE_MBUF)           += -lrte_mbuf
@@ -73,7 +73,7 @@ If you use CacheDirector or [slice-aware memory management][slice-aware-repo] in
 
 ## Getting Help
 
-If you have any questions regarding our code or paper, you can contact Amir Roozbeh (amirrsk at kth.se) and/or Alireza Farshin (farshin at kth.se).
+If you have any questions regarding our code or the paper, you can contact Amir Roozbeh (amirrsk at kth.se) and/or Alireza Farshin (farshin at kth.se).
 
 [cachedirector-eurosys-paper]: http://doi.org/10.1145/3302424.3303977
 [slice-aware-repo]: https://github.com/aliireza/slice-aware
