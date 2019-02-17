@@ -75,7 +75,7 @@ If you use CacheDirector or [slice-aware memory management][slice-aware-repo] in
 
 If you have any questions regarding our code or the paper, you can contact Amir Roozbeh (amirrsk at kth.se) and/or Alireza Farshin (farshin at kth.se).
 
-[cachedirector-eurosys-paper]: http://doi.org/10.1145/3302424.3303977
+[cachedirector-eurosys-paper]: https://people.kth.se/~farshin/documents/slice-aware-eurosys19.pdf
 [slice-aware-repo]: https://github.com/aliireza/slice-aware
 [ddio]: https://www.intel.com/content/www/us/en/io/data-direct-i-o-technology.html
 [fastclick]: https://github.com/tbarbette/fastclick/
