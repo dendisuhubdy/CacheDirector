@@ -1,6 +1,6 @@
 # CacheDirector
 
-CacheDirector is a network I/O solution that exploits [slice-aware memory management][slice-aware-repo], extends Data Direct I/O ([DDIO][ddio]),  and sends each packet's header directly to the correct slice in the LLC; hence, the CPU core that is responsible for processing a packet can access the packet header in fewer CPU cycles. For more information, check out our [paper][cachedirector-eurosys-paper].
+CacheDirector is a network I/O solution that exploits [slice-aware memory management][slice-aware-repo], extends Data Direct I/O ([DDIO][ddio]),  and sends each packet's header directly to the correct slice in the LLC; hence, the CPU core that is responsible for processing a packet can access the packet header in fewer CPU cycles. For more information, check out our [paper][cachedirector-eurosys-paper] and my talk at [EuroSys'19][cachedirector-video].
 
 
 ## Building CacheDirector
@@ -57,17 +57,22 @@ If you use CacheDirector or [slice-aware memory management][slice-aware-repo] in
 
 ```
 @inproceedings{farshin-slice-aware,
- author = {Farshin, Alireza and Roozbeh, Amir and Maguire Jr., Gerald Q. and Kosti\'{c}, Dejan},
- title = {Make the Most out of Last Level Cache in Intel Processors},
- booktitle = {Proceedings of the Fourteenth EuroSys Conference},
+ author = {Farshin, Alireza and Roozbeh, Amir and {Maguire Jr.}, Gerald Q. and Kosti\'{c}, Dejan},
+ title = {{Make the Most out of Last Level Cache in Intel Processors}},
+ booktitle = {Proceedings of the Fourteenth EuroSys Conference 2019},
  series = {EuroSys '19},
  year = {2019},
- isbn = {978-1-4503-6281-8/19/03},
+ isbn = {978-1-4503-6281-8},
  location = {Dresden, Germany},
+ pages = {8:1--8:17},
+ articleno = {8},
+ numpages = {17},
+ url = {http://doi.acm.org/10.1145/3302424.3303977},
  doi = {10.1145/3302424.3303977},
  acmid = {3303977},
  publisher = {ACM},
  address = {New York, NY, USA},
+ keywords = {Cache Allocation Technology, Cache Partitioning, CacheDirector, DDIO, DPDK, Key-Value Store, Last Level Cache, Network Function Virtualization, Non-Uniform Cache Architecture, Slice-aware Memory Management},
 }
 ```
 
@@ -76,6 +81,7 @@ If you use CacheDirector or [slice-aware memory management][slice-aware-repo] in
 If you have any questions regarding our code or the paper, you can contact Amir Roozbeh (amirrsk at kth.se) and/or Alireza Farshin (farshin at kth.se).
 
 [cachedirector-eurosys-paper]: https://people.kth.se/~farshin/documents/slice-aware-eurosys19.pdf
+[cachedirector-video]: https://play.kth.se/media/Make+the+Most+out+of+Last+Level+Cache+in+Intel+Processors+%28EuroSys+%2719%29/0_jqd1pfa9
 [slice-aware-repo]: https://github.com/aliireza/slice-aware
 [ddio]: https://www.intel.com/content/www/us/en/io/data-direct-i-o-technology.html
 [fastclick]: https://github.com/tbarbette/fastclick/
